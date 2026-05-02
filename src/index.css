@@ -1,0 +1,7 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-primary: var(--color-orange-600);
+  --color-brand-bg: var(--color-orange-50);
+  --color-brand-accent: var(--color-blue-600);
+}

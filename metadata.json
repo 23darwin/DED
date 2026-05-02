@@ -1,0 +1,13 @@
+{
+  "name": "DED Dschang Express",
+  "description": "Système de gestion de livraisons sécurisé pour Dschang Express Delivery : archivage de contrats, signatures numériques et suivi de colis.",
+  "requestFramePermissions": [
+    "camera",
+    "geolocation"
+  ],
+  "majorCapabilities": [
+    "Firebase Firestore",
+    "Digital Signatures",
+    "Photo Archiving"
+  ]
+}

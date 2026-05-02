@@ -1,0 +1,43 @@
+{
+  "entities": {
+    "Delivery": {
+      "title": "Delivery",
+      "description": "A record of a delivery from an agency to a client.",
+      "type": "object",
+      "properties": {
+        "displayId": { "type": "string", "description": "Human readable ID like DED-001" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "clientName": { "type": "string" },
+        "whatsappNumber": { "type": "string" },
+        "transportAgency": { "type": "string", "enum": ["Menoua Voyages", "Real Express", "Finexs Voyages", "Interurbain", "Autre"] },
+        "receiptPhoto": { "type": "string", "description": "URL of the agency receipt photo" },
+        "deliveryQuarter": { "type": "string" },
+        "serviceType": { "type": "string", "enum": ["Colis", "Gaz", "Repas", "Administratif", "Autre"] },
+        "parcelStatusPhoto": { "type": "string", "description": "Proof of parcel condition" },
+        "securityCode": { "type": "string", "description": "4-digit code for verification" },
+        "clientSignature": { "type": "string", "description": "Image data of client signature" },
+        "status": { "type": "string", "enum": ["En attente", "Récupéré", "En cours", "Livré"] },
+        "statusHistory": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "status": { "type": "string" },
+              "timestamp": { "type": "string", "format": "date-time" }
+            }
+          }
+        },
+        "totalAmount": { "type": "number" },
+        "notes": { "type": "string" },
+        "createdBy": { "type": "string", "description": "UID of the courier" }
+      },
+      "required": ["displayId", "clientName", "whatsappNumber", "transportAgency", "status", "securityCode"]
+    }
+  },
+  "firestore": {
+    "deliveries/{deliveryId}": {
+      "schema": "Delivery",
+      "description": "Collection of all delivery contracts"
+    }
+  }
+}

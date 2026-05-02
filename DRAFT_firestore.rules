@@ -1,0 +1,64 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Phase 3: Primitive Definitions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Phase 4: Entity Validation
+    function isValidDelivery(data) {
+      return data.keys().hasAll(['displayId', 'clientName', 'whatsappNumber', 'transportAgency', 'status', 'statusHistory', 'securityCode', 'createdBy', 'timestamp'])
+        && data.displayId is string && data.displayId.size() <= 20 && data.displayId.matches('^DED-[0-9]+$')
+        && data.clientName is string && data.clientName.size() <= 100
+        && data.whatsappNumber is string && data.whatsappNumber.size() <= 20
+        && data.transportAgency in ['Menoua Voyages', 'Real Express', 'Finexs Voyages', 'Interurbain', 'Autre']
+        && data.status in ['En attente', 'Récupéré', 'En cours', 'Livré']
+        && data.statusHistory is list
+        && data.securityCode is string && data.securityCode.size() == 4
+        && data.createdBy == request.auth.uid
+        && (data.get('totalAmount', 0) is int || data.get('totalAmount', 0) is float)
+        && data.timestamp is string;
+    }
+
+    match /deliveries/{deliveryId} {
+      allow list: if isSignedIn();
+      allow get: if isSignedIn();
+
+      allow create: if isSignedIn() 
+        && isValidId(deliveryId)
+        && isValidDelivery(incoming())
+        && incoming().status == 'En attente'
+        && incoming().createdAt == request.time;
+
+      allow update: if isSignedIn()
+        && isValidDelivery(incoming())
+        && (
+          // Action: Professional Progress
+          (
+            existing().status != 'Livré' &&
+            incoming().diff(existing()).affectedKeys().hasOnly(['status', 'statusHistory', 'clientSignature', 'updatedAt']) &&
+            (incoming().status == 'Livré' ? incoming().clientSignature is string : true) &&
+            incoming().updatedAt == request.time
+          )
+        );
+    }
+  }
+}
